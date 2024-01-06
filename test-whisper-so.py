@@ -104,3 +104,6 @@ if __name__ == "__main__":
 
     # free the memory
     whisper.whisper_free(ctypes.c_void_p(ctx))
+
+
+
