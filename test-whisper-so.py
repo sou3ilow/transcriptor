@@ -1,25 +1,31 @@
+
+# original script
+# https://zenn.dev/k41531/articles/ab1b42c044117b
+
 import ctypes
-import pathlib
+#import pathlib
 
 # this is needed to read the WAV file properly from scipy.io import wavfile
 from scipy.io import wavfile
 
-libname = "libwhisper.so"
-fname_model = "models/ggml-base.bin"
-fname_wav = "samples/jfk.wav"
+import myenv
+# myenv.LIB_PATH      # path for libwhisper.so
+# myenv.MODEL_PATH    # path for model. e.g, ggml-base.bin
+# myenv.TEST_TARGET   # path for wav
 
 # this needs to match the C struct in whisper.h
 class WhisperFullParams(ctypes.Structure):
     _fields_ = [
         ("strategy", ctypes.c_int),
         #
-        ("n_max_text_ctx", ctypes.c_int),
         ("n_threads", ctypes.c_int),
+        ("n_max_text_ctx", ctypes.c_int),
         ("offset_ms", ctypes.c_int),
         ("duration_ms", ctypes.c_int),
         #
         ("translate", ctypes.c_bool),
         ("no_context", ctypes.c_bool),
+        ("no_timestamps", ctypes.c_bool),
         ("single_segment", ctypes.c_bool),
         ("print_special", ctypes.c_bool),
         ("print_progress", ctypes.c_bool),
@@ -30,36 +36,67 @@ class WhisperFullParams(ctypes.Structure):
         ("thold_pt", ctypes.c_float),
         ("thold_ptsum", ctypes.c_float),
         ("max_len", ctypes.c_int),
+        ("split_on_word", ctypes.c_bool),
         ("max_tokens", ctypes.c_int),
         #
         ("speed_up", ctypes.c_bool),
+        ("debug_mode", ctypes.c_bool),
         ("audio_ctx", ctypes.c_int),
         #
+        ("tbrz_enables", ctypes.c_bool),
+        #
+        ("initial_prompt", ctypes.c_char_p),
         ("prompt_tokens", ctypes.c_void_p),
         ("prompt_n_tokens", ctypes.c_int),
         #
         ("language", ctypes.c_char_p),
+        ("detect_language", ctypes.c_bool),
         #
         ("suppress_blank", ctypes.c_bool),
+        ("suppress_non_speech_tokens", ctypes.c_bool),
         #
         ("temperature_inc", ctypes.c_float),
+        ("max_initial_ts", ctypes.c_float),
+        ("length_penalty", ctypes.c_float),
+        #
+        ("temprature_inc", ctypes.c_float),
         ("entropy_thold", ctypes.c_float),
         ("logprob_thold", ctypes.c_float),
         ("no_speech_thold", ctypes.c_float),
         #
+        # struct { int }
         ("greedy", ctypes.c_int * 1),
+        #
+        # struct { int, float }
         ("beam_search", ctypes.c_int * 3),
         #
         ("new_segment_callback", ctypes.c_void_p),
         ("new_segment_callback_user_data", ctypes.c_void_p),
         #
+        ("progress_callback", ctypes.c_void_p),
+        ("progress_callback_user_data", ctypes.c_void_p),
+        #
         ("encoder_begin_callback", ctypes.c_void_p),
         ("encoder_begin_callback_user_data", ctypes.c_void_p),
+        #
+        ("abort_callback", ctypes.c_void_p),
+        ("abort_callback_user_data", ctypes.c_void_p),
+        #
+        ("logits_filter_callback", ctypes.c_void_p),
+        ("logits_filter_callback_user_data", ctypes.c_void_p),
+        #
+        ("grammar_rules", ctypes.c_void_p),
+        ("n_grammer_rules", ctypes.c_size_t),
+        ("i_start_rule", ctypes.c_size_t),
+        ("grammar_penalty", ctypes.c_float),
     ]
 
 if __name__ == "__main__":
+
+
     # load library and model
-    libname = pathlib.Path().absolute() / libname
+    #libname = pathlib.Path().absolute() / libname
+    libname = myenv.LIB_PATH 
     whisper = ctypes.CDLL(libname)
 
     # tell Python what are the return types of the functions
@@ -68,15 +105,18 @@ if __name__ == "__main__":
     whisper.whisper_full_get_segment_text.restype = ctypes.c_char_p
 
     # initialize whisper.cpp context
-    ctx = whisper.whisper_init_from_file(fname_model.encode("utf-8"))
+    #ctx = whisper.whisper_init_from_file(fname_model.encode("utf-8"))
+    ctx = whisper.whisper_init_from_file(myenv.MODEL_PATH.encode("utf-8"))
 
     # get default whisper parameters and adjust as needed
     params = whisper.whisper_full_default_params()
     params.print_realtime = True
     params.print_progress = False
+    params.language = b'ja'
 
     # load WAV file
-    samplerate, data = wavfile.read(fname_wav)
+    #samplerate, data = wavfile.read(fname_wav)
+    samplerate, data = wavfile.read(myenv.TEST_TARGET)
 
     # convert to 32-bit float
     data = data.astype("float32") / 32768.0
