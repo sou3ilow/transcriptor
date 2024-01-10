@@ -1,10 +1,39 @@
-
-
 ## 概要
 
-文字起こし用ツールです。
+（今のところMac用の）文字起こし用ツールです。
 
-PCで再生中の音声をリアルタイムに拾って文字に起こし、notionにアップロードすることを目的としています。
+PCで再生中の音声をリアルタイムに拾って文字に起こし、notionにアップロードする事ができます。Notionにアップロードするのでその場で修正していけるという目論見です。
+
+文字起こしにはWhisper.cppを使っています。Mac用のチューニングがされているそうで、Windowsで使い物になるのかどうか、未確認です。
+
+## コマンドラインオプション
+
+実行には`myenv.py`が別途必要です。installを御覧ください。
+
+```
+% python3 reacord.py -h
+usage: reacord.py [-h] [--input INPUT] [--lang LANG] [--page PAGE] [--vol_th VOL_TH]
+                  [--keyboard KEYBOARD] [--list] [--upload]
+
+Realtime speach transcript & Uploder
+
+optional arguments:
+  -h, --help           show this help message and exit
+  --input INPUT        device index
+  --lang LANG          transcription base language
+  --page PAGE          notion page id if not, no upload
+  --vol_th VOL_TH      volume threshold
+  --list               (one shot)show device list
+  --upload             (one shot)test upload
+```
+
+* input 入力デバイスの番号を指定します。listで一覧を得ることができます。
+* lang 言語を`ja`, `en`の様に指定します。
+* page notionにアップロードする際に指定します。
+* vol_th
+* list 利用可能なデバイスをリストアップします
+* upload notionへのアクセスが可能か試験します。
+
 
 ## インストール
 
@@ -18,15 +47,15 @@ PCで再生中の音声をリアルタイムに拾って文字に起こし、not
 文字起こしのためにlibwhisper.soを使います。
 libwhisper.soはwhisper.cppの一部で、レポジトリをクローンした後下記のコマンドで生成できます。
 ```
-	make libwhisper.so
+make libwhisper.so
 ```
 
 モデルをダウンロードしておく必要があります。モデルはxxxとggmlの2つがあるようですが、
 ggmlのほうを推奨しているように見受けられたのでこちらを使うようにしました。
 m2 macbook airではlargeモデルで十分動くようですのでlargeモデルを取得しておきます。
 ```
-	cd models
-	bash download-ggml-models.sh large-v3-q5_0.bin"
+cd models
+bash download-ggml-models.sh large-v3-q5_0.bin"
 ```
 
 libwhisper.soとmodelのパスはmyenv.pyに書いておく必要があります。
@@ -40,12 +69,12 @@ https://rogueamoeba.com/loopback/
 
 `looback audio`のようなものを作って、sourceにchromeを追加し、chromeからoutputにつなげると準備が整います。
 ```
-	% python3 list-device.py 
-	Input Device id  0  -  MacBook Airのマイク
-	Input Device id  2  -  Microsoft Teams Audio
-	Input Device id  3  -  Loopback Audio
+% python3 record.py --list
+Input Device id  0  -  MacBook Airのマイク
+Input Device id  2  -  Microsoft Teams Audio
+Input Device id  3  -  Loopback Audio
 ```
-recorder.pyのgInputDeviceIndexに対象のid(ここでは3)を指定します。0だとマイクの音をそのまま拾います。
+recorder.py --inputに対象のid(ここでは3)を指定します。0だとマイクの音をそのまま拾います。
 
 ### Notion
 
@@ -71,7 +100,7 @@ LIB_PATH = "(path to whisper.cpp)/libwhisper.so"
 MODEL_PATH = "(path to whisper.cpp)/models/ggml-large-v3-q5_0.bin"
 TEST_TARGET = "./data/1.wav"
 NOTION_TOKEN = "secret_XXXXXXXXXXXX"
-PAGE_ID = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+PAGE_ID = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" (--pageで指定可能)
 ```
 
 ## 調整
@@ -80,11 +109,11 @@ PAGE_ID = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 
 * SILENCE_THRESHOOLD
 
-無音と有音の境になるボリュームレベルを指定します。`python record.py`を実行し、音声を取得できるようになるとコマンドライン上に下の例のような記載が並びます。o始まりは有音と判定、続く数字がvolumeです。無音区間は行をリフレッシュして表示するのでコンソールに残りません。
+無音と有音の境になるボリュームレベルを指定します。`python record.py`を実行し、音声を取得できるようになるとコマンドライン上に下の例のような記載が並びます。o始まりは有音と判定、続く数字がvolumeです。無音区間は行をリフレッシュして表示するのでコンソールに残りません。（\nと\rを書き換えれば変更可能）
 ```
-  o 1077.37060546875
-  o 1076.40478515625
-  o 1067.57958984375
+o 1077.37060546875
+o 1076.40478515625
+o 1067.57958984375
 ```
 
 * SILENCE_DURATION

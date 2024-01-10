@@ -92,7 +92,7 @@ whisper = None
 ctx = None
 params = None
 
-def initialize():
+def initialize(lang='ja'):
     global whisper
     global ctx
     global params
@@ -118,10 +118,13 @@ def initialize():
 
     #params.print_realtime = True
     #params.print_progress = False
-    params.language = b'ja'
+    params.language = lang.encode() # b'ja'
+
+    print(f"*********************{lang}********************")
 
     #params.no_speech_thold = 100 / 32768.0 # hack
-    params.temperature = 0.8
+    params.no_speech_thold = 0.001
+    #params.temperature = 0.8
 
 def ondata(data, seqnum=None):
     global whisper

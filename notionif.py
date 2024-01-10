@@ -1,5 +1,6 @@
 import asyncio
 from notion_client import AsyncClient
+from notion_client import APIResponseError
 from pprint import pprint
 
 import myenv
@@ -25,22 +26,29 @@ def init(auth=None, target_id=None):
 
 async def upload(text):
     #print("uploading....")
-    response = await notion.blocks.children.append(
-        block_id = page_id,
-        children = [{
-            "object": "block",
-            "type": "bulleted_list_item", "bulleted_list_item":
-            #"type": "paragraph", "paragraph":
-            {
-                "rich_text": [{
-                    "type": "text",
-                    "text": {
-                        "content": text
+    while True:
+        try:
+            response = await notion.blocks.children.append(
+                block_id = page_id,
+                children = [{
+                    "object": "block",
+                    #"type": "bulleted_list_item", "bulleted_list_item":
+                    "type": "paragraph", "paragraph":
+                    {
+                        "rich_text": [{
+                            "type": "text",
+                            "text": {
+                                "content": text
+                            }
+                        }]
                     }
                 }]
-            }
-        }]
-    )
+            )
+            break
+
+        except APIResponseError as error:
+            print(error, error.code)
+            break
     #print("dene")
 
 
