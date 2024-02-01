@@ -25,15 +25,17 @@ def init(auth=None, target_id=None):
     #pprint(await notion.users.list())
 
 async def upload(text):
+    max_attempts = 3
+    count = max_attempts
     #print("uploading....")
-    while True:
+    while 0 < count:
         try:
             response = await notion.blocks.children.append(
                 block_id = page_id,
                 children = [{
                     "object": "block",
-                    #"type": "bulleted_list_item", "bulleted_list_item":
-                    "type": "paragraph", "paragraph":
+                    "type": "bulleted_list_item", "bulleted_list_item":
+                    #"type": "paragraph", "paragraph":
                     {
                         "rich_text": [{
                             "type": "text",
@@ -49,8 +51,20 @@ async def upload(text):
         except APIResponseError as error:
             print(error, error.code)
             break
-    #print("dene")
 
+        except TimeoutError as error:
+            print(error, error.code)
+            break
+
+        except Exception as error:
+            print(error, error.code)
+            break
+
+        finally:
+            count -= 1
+
+    if ( count == 0 ):
+        print("counter reached to max attempts. give up")
 
 async def main():
    await init() 
