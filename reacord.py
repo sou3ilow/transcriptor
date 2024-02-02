@@ -195,25 +195,29 @@ async def output(output_queue, args):
     if ( args.file ):
         file = open(args.file, 'a')
 
-    while True:
-        task = output_queue.get()
-        if ( task == None ):
-            break
-        else:
-            seqnum = task['seq']
-            text = task['text'] # array
-            timestamp = task['timestamp'] # array
+    try:
+        while True:
+            task = output_queue.get()
+            if ( task == None ):
+                break
+            else:
+                seqnum = task['seq']
+                text = task['text'] # array
+                timestamp = task['timestamp'] # array
 
-            line = f"{'〜'.join(text)}（{timestamp.strftime('%H:%M:%S')}）"
+                line = f"{'〜'.join(text)}（{timestamp.strftime('%H:%M:%S')}）"
 
-            if ( file ):
-                file.write(line+"\n");
-                file.flush();
+                if ( file ):
+                    file.write(line+"\n");
+                    file.flush();
 
-            if ( page ):
-                await notionif.upload(line)
+                if ( page ):
+                    await notionif.upload(line)
 
-            print(line);
+                print(line);
+    finally:
+        if ( file ):
+            file.close()
 
     print('output() end')
 
