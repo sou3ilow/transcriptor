@@ -1,4 +1,4 @@
-name: CodeGuru Security Example
+name: CodeGuru Security Review
 on:
   push:
     branches:
@@ -17,12 +17,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Respository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v3
         with:
           role-to-assume: arn:aws:iam::760691240107:role/CodeGuruSecurityGitHubAccessRole
           aws-region: ap-southeast-2
@@ -42,6 +42,6 @@ jobs:
       # If you want content in security scanning, you’ll need to enable codescanning by going into github.
       # https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning-for-a-repository
       - name: Upload result
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: codeguru-security-results.sarif.json
