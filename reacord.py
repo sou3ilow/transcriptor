@@ -220,23 +220,26 @@ async def output(output_queue, args):
 
 def test_upload(args):
     notionif.init(target_id=args.page)
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    test_string = "test test test"
-    print(f"sending {test_string} to page id={args.page}")
-    loop.run_until_complete(notionif.upload(test_string))
-    loop.close()
+    try:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        test_string = "test test test"
+        print(f"sending {test_string} to page id={args.page}")
+        loop.run_until_complete(notionif.upload(test_string))
+    finally:
+        loop.close()
     
 
 
 # uploadがasyncなのでthreadに渡すためラッパーをかける
 def output_thread(output_queue, args):
     print("output_thread initilizing") 
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(output(output_queue, args))
-    loop.close()
-    
+    try:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(output(output_queue, args))
+    finally:
+        loop.close()
 
 def main(args):
 
